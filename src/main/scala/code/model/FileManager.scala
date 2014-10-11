@@ -11,7 +11,7 @@ object FileManager {
 
     val rootDir = new File("/usr0/home/ckaestne/work/TypeChef/LinuxAnalysis/")
     val linuxDir = new File(rootDir, "l")
-    val fileListFile = new File(rootDir, "linux_files.lst")
+    val fileListFile = new File(rootDir, "pcs/x86.flist")
 
     def resetCache(): Unit = {
         _fileList = None
@@ -58,7 +58,7 @@ object FileManager {
         val commentExists = commentfile.exists
 
         if (!file.exists) {
-            (filename, false, error("file does not exist", commentExists))
+            (filename, false, "waiting for TypeChef")
         } else {
             val lines = getLines(file)
 
@@ -115,6 +115,7 @@ object FileManager {
 
     def getErrors(filename: String): Seq[(String, FeatureExpr, String, (String, Int, Int))] = {
         val file = new File(linuxDir, filename + ".c.xml")
+        if (!file.exists()) return Nil
         val xml = XML.loadFile(file)
 
         def parsePosition(n: NodeSeq): (String, Int, Int) = (n \ "file" text, (n \ "line" text).trim.toInt, (n \ "col" text).trim.toInt)
@@ -143,6 +144,12 @@ object FileManager {
     }
     def getErrorOutput(filename: String): String = {
         val file = new File(linuxDir, filename + ".err")
+        if (file.exists())
+            getLines(file).mkString("\n")
+        else ""
+    }
+    def getComments(filename: String): String = {
+        val file = new File(linuxDir, filename + ".comment")
         if (file.exists())
             getLines(file).mkString("\n")
         else ""
