@@ -37,12 +37,14 @@ object AnalysisDetails {
 
     def errors = fileparam.map(FileManager.getErrors).getOrElse(List())
 
+    def comments = <div>{fileparam.map(FileManager.getComments).getOrElse("")}</div>
+
 
     def genButton(pc:FeatureExpr) =
-        <a href={"/pc?pc="+urlEncode(pc.toTextExpr)} target="_blank">debug&nbsp;pc</a>
+        <a href={"/pc?pc="+urlEncode(pc.toTextExpr)}>debug&nbsp;pc</a>
 
     def resetButton =
-        <div><a href={"/reset?file="+fileparam.getOrElse("")} target="_blank">reset</a></div>
+        <div><a href={"/reset?file="+urlEncode(fileparam.getOrElse(""))}>reset</a></div>
 }
 
 }

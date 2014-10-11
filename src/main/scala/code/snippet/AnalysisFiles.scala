@@ -33,7 +33,7 @@ object AnalysisFilesTable {
     }
 
     def genButton(f:String) =
-        <div><a href={"/details?file="+f} target="_blank">details</a>
-            <a href={"/reset?file="+f} target="_blank">reset</a></div>
+        <div><a href={"/details?file="+urlEncode(f)}>details</a>
+            <a href={"/reset?file="+urlEncode(f)}>reset</a></div>
 }
 
