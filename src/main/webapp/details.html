@@ -1,0 +1,27 @@
+<lift:surround with="default" at="content">
+
+    <h1>Analysis details: <span data-lift="details.AnalysisDetails.filename"></span></h1>
+
+    <div data-lift="details.AnalysisDetails.resetButton">none</div>
+
+        <h2>File presence condition</h2>
+
+        <div data-lift="details.AnalysisDetails.filepresencecondition">none</div>
+
+        <h2>Errors</h2>
+        <table class="lift:ErrorTable">
+            <tr><th>Msg</th><th>Condition</th><th>Severity</th><th>Location</th></tr>
+            <tr id="my_tr"><td>An item</td>
+            </tr>
+        </table>
+
+    <h2>Log</h2>
+
+    <pre data-lift="details.AnalysisDetails.log">none</pre>
+
+    <h2>Error Log</h2>
+
+    <pre data-lift="details.AnalysisDetails.errorlog">none</pre>
+
+
+</lift:surround>
