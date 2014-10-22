@@ -2,16 +2,60 @@ package code.model
 
 import java.io.File
 
-import de.fosd.typechef.featureexpr.{AbstractFeatureExprFactory, FeatureExpr, FeatureExprFactory, FeatureExprParser}
+import de.fosd.typechef.featureexpr._
 
 import scala.xml.{NodeSeq, XML}
 
+
+class ProjectSettings(val projectFolder: String,
+                      val arch: String = "x86",
+                      fms: List[FMLoader],
+                      projectRootDir: File
+                         ) {
+
+    val rootDir = new File(projectRootDir, projectFolder)
+    val linuxDir = new File(rootDir, "linux")
+    val fileListFile = new File(rootDir, "pcs/" + arch + ".flist")
+
+    def featureModels(f: AbstractFeatureExprFactory = FeatureExprFactory.dflt): List[(String, FeatureModel)] =
+        fms.map(a => (a.getName, a.loadFM(f, rootDir)))
+
+}
+
+trait FMLoader {
+    def loadFM(f: AbstractFeatureExprFactory, dir: File): FeatureModel
+    def getName: String
+}
+
+class DimacsFM(file: String) extends FMLoader {
+    override def loadFM(f: AbstractFeatureExprFactory, dir: File): FeatureModel = f.featureModelFactory.createFromDimacsFile(scala.io.Source.fromFile(new File(dir, file)))
+    def getName = file
+}
+
+class FExprFM(file: String) extends FMLoader {
+    override def loadFM(f: AbstractFeatureExprFactory, dir: File): FeatureModel = f.featureModelFactory.create(new FeatureExprParser(f).parseFile(new File(dir, file)))
+    def getName = file
+}
+
+
 object FileManager {
 
+    val projectRootDir = new File("/usr0/home/ckaestne/work/TypeChef/LinuxAnalysis/")
 
-    val rootDir = new File("/usr0/home/ckaestne/work/TypeChef/LinuxAnalysis/")
-    val linuxDir = new File(rootDir, "l")
-    val fileListFile = new File(rootDir, "pcs/x86.flist")
+
+
+    val projects = List(
+        new ProjectSettings("linux26333", "x86", List(new FExprFM("approx.fm"), new DimacsFM("extramodels/2.6.33.3-2var.dimacs"), new DimacsFM("pcs/x86.dimacs")), projectRootDir),
+        new ProjectSettings("master", "x86", List(new FExprFM("approx.fm"), new DimacsFM("pcs/x86.dimacs"), new DimacsFM("26333.dimacs")), projectRootDir)
+    )
+
+    var currentProject = projects.tail.head
+
+    def setProject(name: String): Unit = {
+        currentProject = projects.find(_.projectFolder == name).getOrElse(projects.head)
+        resetCache()
+    }
+
 
     def resetCache(): Unit = {
         _fileList = None
@@ -22,7 +66,7 @@ object FileManager {
 
     def fileList = {
         if (!_fileList.isDefined)
-            _fileList = Some(getLines(fileListFile))
+            _fileList = Some(getLines(currentProject.fileListFile))
         _fileList.get
     }
 
@@ -53,8 +97,8 @@ object FileManager {
     }
 
     def analyzeFile(filename: String): (String, Boolean, String) = {
-        val file = new File(linuxDir, filename + ".dbg")
-        val commentfile = new File(linuxDir, filename + ".comment")
+        val file = new File(currentProject.linuxDir, filename + ".dbg")
+        val commentfile = new File(currentProject.linuxDir, filename + ".comment")
         val commentExists = commentfile.exists
 
         if (!file.exists) {
@@ -81,10 +125,10 @@ object FileManager {
     //deletes the .dbg file and returns whether successful
     def resetFile(filename: String): Boolean = {
         def cleanFile(ext: String) = {
-            val file = new File(linuxDir, filename + ext)
+            val file = new File(currentProject.linuxDir, filename + ext)
             if (file.exists()) file.delete()
         }
-        val file = new File(linuxDir, filename + ".dbg")
+        val file = new File(currentProject.linuxDir, filename + ".dbg")
         cleanFile(".err")
         cleanFile(".c.xml")
         cleanupDebugOutput(filename)
@@ -98,7 +142,7 @@ object FileManager {
      */
     def cleanupDebugOutput(filename: String): Unit = {
         def cleanFile(ext: String) = {
-            val file = new File(linuxDir, filename + ext)
+            val file = new File(currentProject.linuxDir, filename + ext)
             if (file.exists()) file.delete()
         }
         cleanFile(".pi")
@@ -107,14 +151,14 @@ object FileManager {
     }
 
     def getFilePC(filename: String): FeatureExpr = {
-        val file = new File(linuxDir, filename + ".pc")
+        val file = new File(currentProject.linuxDir, filename + ".pc")
         if (file.exists())
             new FeatureExprParser().parseFile(file)
         else FeatureExprFactory.True
     }
 
     def getErrors(filename: String): Seq[(String, FeatureExpr, String, (String, Int, Int))] = {
-        val file = new File(linuxDir, filename + ".c.xml")
+        val file = new File(currentProject.linuxDir, filename + ".c.xml")
         if (!file.exists()) return Nil
         val xml = XML.loadFile(file)
 
@@ -137,30 +181,23 @@ object FileManager {
     }
 
     def getDbgOutput(filename: String): String = {
-        val file = new File(linuxDir, filename + ".dbg")
+        val file = new File(currentProject.linuxDir, filename + ".dbg")
         if (file.exists())
             getLines(file).mkString("\n")
         else ""
     }
     def getErrorOutput(filename: String): String = {
-        val file = new File(linuxDir, filename + ".err")
+        val file = new File(currentProject.linuxDir, filename + ".err")
         if (file.exists())
             getLines(file).mkString("\n")
         else ""
     }
     def getComments(filename: String): String = {
-        val file = new File(linuxDir, filename + ".comment")
+        val file = new File(currentProject.linuxDir, filename + ".comment")
         if (file.exists())
             getLines(file).mkString("\n")
         else ""
     }
 
-
-    def getFMApprox(f: AbstractFeatureExprFactory = FeatureExprFactory.dflt) =
-        f.featureModelFactory.create(new FeatureExprParser(f).parseFile(new File(rootDir, "approx.fm")))
-    def getFMDimacsOld(f: AbstractFeatureExprFactory = FeatureExprFactory.dflt) =
-        f.featureModelFactory.createFromDimacsFile(scala.io.Source.fromFile(new File(rootDir, "2.6.33.3-2var.dimacs")))
-    def getFMDimacs(f: AbstractFeatureExprFactory = FeatureExprFactory.dflt) =
-        f.featureModelFactory.createFromDimacsFile(scala.io.Source.fromFile(new File(rootDir, "pcs/x86.dimacs")))
 
 }

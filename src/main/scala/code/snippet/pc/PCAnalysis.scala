@@ -27,21 +27,10 @@ object PCAnalysis {
             else if (fexpr.isTautology(fm)) <span style="color:red">tautology</span>
             else <span>satisfiable</span>
 
+        val fms = ("Plain", FeatureExprFactory.bdd.featureModelFactory.empty) :: FileManager.currentProject.featureModels(FeatureExprFactory.bdd)
 
-        return <div>
-            <div>Plain:
-                {status(FeatureExprFactory.bdd.featureModelFactory.empty)}
-            </div>
-            <div>Approx.fm:
-                {status(FileManager.getFMApprox(FeatureExprFactory.bdd))}
-            </div>
-            <div>Dimacs.old:
-                {status(FileManager.getFMDimacsOld(FeatureExprFactory.bdd))}
-            </div>
-            <div>Dimacs:
-                {status(FileManager.getFMDimacs(FeatureExprFactory.bdd))}
-            </div>
-        </div>
+
+        return <div>{for ((n,fm)<-fms) yield <div>{n}: {status(fm)}</div>}</div>
     }.getOrElse(<span></span>)
 
 

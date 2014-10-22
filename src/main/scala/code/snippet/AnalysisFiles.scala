@@ -24,6 +24,10 @@ object AnalysisFilesTable {
             case Full(_) => true
             case _ => false
         }
+        S.param("project") match {
+            case Full(p) => FileManager.setProject(p)
+            case _ =>
+        }
 
         var status = FileManager.fileStatusList.filter(s=> !s._2 || !isFilter)
 
@@ -35,5 +39,7 @@ object AnalysisFilesTable {
     def genButton(f:String) =
         <div><a href={"/details?file="+urlEncode(f)}>details</a>
             <a href={"/reset?file="+urlEncode(f)}>reset</a></div>
+
+    def projects = <div>Current project: {FileManager.currentProject.projectFolder} -- Switch: {(for (p<-FileManager.projects) yield <span><a href={"?project="+p.projectFolder}>{p.projectFolder}</a> </span>)}</div>
 }
 
