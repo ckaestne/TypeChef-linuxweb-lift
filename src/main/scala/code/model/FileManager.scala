@@ -175,7 +175,7 @@ object FileManager {
             val msg = typeerror \ "msg" text
             val severity = (typeerror \ "severity" text) + " / " + (typeerror \ "severityextra" text)
             val pos = parsePosition(typeerror \ "position" head)
-            (msg, fexpr, "parser error", pos)
+            (msg, fexpr, severity, pos)
         }
         pes ++ tes
     }
