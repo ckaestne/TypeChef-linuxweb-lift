@@ -4,7 +4,7 @@ version := "0.0.4"
 
 organization := "de.fosd.typechef"
 
-scalaVersion := "2.10.4"
+scalaVersion := "2.11.4"
 
 resolvers ++= Seq("snapshots"     at "https://oss.sonatype.org/content/repositories/snapshots",
                 "releases"        at "https://oss.sonatype.org/content/repositories/releases"
@@ -17,7 +17,7 @@ unmanagedResourceDirectories in Test <+= (baseDirectory) { _ / "src/main/webapp"
 scalacOptions ++= Seq("-deprecation", "-unchecked")
 
 
-libraryDependencies += "de.fosd.typechef" % "frontend_2.10" % "0.3.6"
+libraryDependencies += "de.fosd.typechef" %% "frontend" % "0.3.7"
 
 libraryDependencies += "de.fosd.typechef" % "javabdd_repackaged" % "1.0b2"
 
