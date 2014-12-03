@@ -1,6 +1,6 @@
 package code.model
 
-import java.io.{File, FileReader}
+import java.io.{File, FileReader, FileWriter}
 import java.util.Properties
 
 import de.fosd.typechef.featureexpr._
@@ -124,16 +124,18 @@ object FileManager {
             if (lines.filterNot(_.trim.length == 0).isEmpty)
                 (filename, false, error("file empty", commentExists))
             else
-            if (!lines.e
-                xists (_ == "True\tlexing succeeded"))
+            if (!lines.exists(_ == "True\tlexing succeeded"))
                 (filename, false, error("lexing failed", commentExists))
             else
             if (!lines.exists(_ == "True\tparsing succeeded"))
                 (filename, false, error("parsing failed", commentExists))
             else
-            if (!lines.exists(_ == "No type errors found."))
-                (filename, false, error("type checking failed", commentExists))
-            else
+            if (!lines.exists(_ == "No type errors found.")) {
+                if (warningsOnly(filename))
+                    (filename, false, error("type checking warnings", commentExists))
+                else
+                    (filename, false, error("type checking failed", commentExists))
+            } else
                 (filename, true, "SUCCESS ")
         }
     }
@@ -195,6 +197,7 @@ object FileManager {
         }
         pes ++ tes
     }
+    private def warningsOnly(filename: String) = getErrors(filename).exists(_._3 != "Warning")
 
     def getDbgOutput(filename: String): String = {
         val file = new File(currentProject.linuxDir, filename + ".dbg")
@@ -213,6 +216,18 @@ object FileManager {
         if (file.exists())
             getLines(file).mkString("\n")
         else ""
+    }
+    def setComments(filename: String, comment: String) {
+        val file = new File(currentProject.linuxDir, filename + ".comment")
+        assert(file.getParentFile.exists(), "directory does not exist: "+file.getParent)
+        val writer = new FileWriter(file)
+        writer.write(comment)
+        writer.close()
+    }
+    def deleteComments(filename: String) {
+        val file = new File(currentProject.linuxDir, filename + ".comment")
+        if (file.exists())
+            file.delete()
     }
 
 

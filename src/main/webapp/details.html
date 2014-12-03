@@ -1,15 +1,16 @@
 <lift:surround with="default" at="content">
 
-    <h1>Analysis details: <span data-lift="details.AnalysisDetails.filename"></span></h1>
+    <h1>Analysis details: <span data-lift="AnalysisDetails.filename"></span></h1>
 
-    <div data-lift="details.AnalysisDetails.resetButton">none</div>
+    <div data-lift="AnalysisDetails.resetButton">none</div>
 
         <h2>File presence condition</h2>
 
-        <div data-lift="details.AnalysisDetails.filepresencecondition">none</div>
+        <div data-lift="AnalysisDetails.filepresencecondition">none</div>
 
     <h2>Comments</h2>
-        <div class="lift:details.AnalysisDetails.comments"></div>
+    <lift:snippet type="CommentForm.comments" form="get" ></lift:snippet>
+
 
     <h2>Errors</h2>
         <table class="lift:ErrorTable">
@@ -20,11 +21,11 @@
 
     <h2>Log</h2>
 
-    <pre data-lift="details.AnalysisDetails.log">none</pre>
+    <pre data-lift="AnalysisDetails.log">none</pre>
 
     <h2>Error Log</h2>
 
-    <pre data-lift="details.AnalysisDetails.errorlog">none</pre>
+    <pre data-lift="AnalysisDetails.errorlog">none</pre>
 
 
 </lift:surround>
