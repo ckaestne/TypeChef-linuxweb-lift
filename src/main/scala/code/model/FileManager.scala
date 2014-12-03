@@ -1,6 +1,7 @@
 package code.model
 
-import java.io.File
+import java.io.{File, FileReader}
+import java.util.Properties
 
 import de.fosd.typechef.featureexpr._
 
@@ -40,14 +41,28 @@ class FExprFM(file: String) extends FMLoader {
 
 object FileManager {
 
-    val projectRootDir = new File("/usr0/home/ckaestne/work/TypeChef/LinuxAnalysis/")
+
+    val settings = new Properties()
+    settings.load(new FileReader(new File(".settings")))
 
 
+    val projectRootDir = new File(settings.getProperty("root", ""))
+    assert(projectRootDir.exists(), "project root not defined or not a directory. check .settings file")
 
-    val projects = List(
-        new ProjectSettings("linux26333", "x86", List(new FExprFM("approx.fm"), new DimacsFM("extramodels/2.6.33.3-2var.dimacs"), new DimacsFM("pcs/x86.dimacs")), projectRootDir),
-        new ProjectSettings("master", "x86", List(new FExprFM("approx.fm"), new DimacsFM("pcs/x86.dimacs"), new DimacsFM("26333.dimacs")), projectRootDir)
-    )
+    val projectList = settings.getProperty("projects", "").split(",").map(_.trim).filter(!_.isEmpty)
+    assert(projectList.nonEmpty, "no projects defined in .settings file")
+
+
+    val projects = for (projectname <- projectList) yield {
+        val arch = settings.getProperty(projectname + ".arch", "x86")
+        val fms = for (fm <- settings.getProperty(projectname + ".fm", "").split(",")
+                       if (fm startsWith "fexpr:") || (fm startsWith "dimacs:")) yield {
+            if (fm startsWith "fexpr:") new FExprFM(fm drop 6)
+            else new DimacsFM(fm drop 7)
+        }
+        new ProjectSettings(projectname, arch, fms.toList, projectRootDir)
+    }
+
 
     var currentProject = projects.tail.head
 
@@ -109,7 +124,8 @@ object FileManager {
             if (lines.filterNot(_.trim.length == 0).isEmpty)
                 (filename, false, error("file empty", commentExists))
             else
-            if (!lines.exists(_ == "True\tlexing succeeded"))
+            if (!lines.e
+                xists (_ == "True\tlexing succeeded"))
                 (filename, false, error("lexing failed", commentExists))
             else
             if (!lines.exists(_ == "True\tparsing succeeded"))
